@@ -186,140 +186,145 @@
     <audio id="close-sound" src="close.mp3"></audio>
 
     <script>
-        let letters = JSON.parse(localStorage.getItem('letters')) || [
-            { 
-                title: "Welcome Letter", 
-                content: `Hola mi amor,\n\nI couldn’t send you a Christmas card in time for our favorite holiday, so I made something even more special—this little website where I’m journaling everything I’ve done since the day you flew away from me.\n\nI made it just for you, so even though we’re oceans apart, it feels like we’re still sharing our days and moments together. I know we talk every day, but this feels so romantic—like we’re one of those 19th-century couples writing heartfelt letters from afar.\n\nIt took me a while to put this together, and I hope it brings a smile to your face, mi amorcito. I love you more than words can say, and I miss you so much. Wishing you and your family the most magical, joyful Christmas and a New Year filled with happiness. Counting down the days until I get to hold you again.\n\nTe amo con todo mi corazón. See you soon, my love. 💕`
+    let letters = JSON.parse(localStorage.getItem('letters')) || [
+        { 
+            title: "Welcome Letter", 
+            content: `Hola mi amor,\n\nI couldn’t send you a Christmas card in time for our favorite holiday, so I made something even more special—this little website where I’m journaling everything I’ve done since the day you flew away from me.\n\nI made it just for you, so even though we’re oceans apart, it feels like we’re still sharing our days and moments together. I know we talk every day, but this feels so romantic—like we’re one of those 19th-century couples writing heartfelt letters from afar.\n\nIt took me a while to put this together, and I hope it brings a smile to your face, mi amorcito. I love you more than words can say, and I miss you so much. Wishing you and your family the most magical, joyful Christmas and a New Year filled with happiness. Counting down the days until I get to hold you again.\n\nTe amo con todo mi corazón. See you soon, my love. 💕`
+        }
+    ];
+    let currentLetterIndex = 0;
+
+    function playAudioLoop(audioSrc, volumeLevel) {
+        const audio = new Audio(audioSrc);
+        audio.loop = true; // Set the audio to loop forever
+        audio.volume = volumeLevel; // Set the volume (0.0 to 1.0)
+        audio.play().catch((error) => {
+            console.error("Failed to play audio:", error);
+        });
+    }
+    
+    // Usage
+    playAudioLoop('santa.mp3', 0.3);
+
+    function playSoundEffect(soundName) {
+        const audio = new Audio(`${soundName}.mp3`);
+        audio.play();
+    }
+
+    function toggleLetter() {
+        const envelope = document.getElementById('current-envelope');
+        if (!envelope.classList.contains('open')) {
+            envelope.classList.add('open');
+            document.getElementById('back-button').classList.remove('hidden');
+            playSoundEffect('twinkle');
+        }
+    }
+
+    function goBack(event) {
+        event.stopPropagation();
+        const envelope = document.getElementById('current-envelope');
+        envelope.classList.add('descending');
+        setTimeout(() => {
+            envelope.classList.remove('open', 'descending');
+            document.getElementById('letter-content').value = '';
+            document.getElementById('letter-title').textContent = '';
+            document.getElementById('envelope-title').textContent = '';
+            document.getElementById('back-button').classList.add('hidden');
+            envelope.querySelector('button[onclick="saveLetter(event)"]').classList.add('hidden');
+            playSoundEffect('crumble');
+        }, 600);
+    }
+
+    function renderPreviousLetters() {
+        const container = document.getElementById('previous-letters');
+        container.innerHTML = '';
+        letters.forEach((letter, index) => {
+            const button = document.createElement('button');
+            button.textContent = letter.title || `Letter ${index + 1}`;
+            button.onclick = () => loadLetter(index);
+            container.appendChild(button);
+        });
+    }
+
+    function loadLetter(index) {
+        currentLetterIndex = index;
+        const letter = letters[index];
+        document.getElementById('letter-title').textContent = letter.title;
+        document.getElementById('letter-content').value = letter.content;
+        document.getElementById('envelope-title').textContent = letter.title;
+        toggleLetter();
+    }
+
+    function initializeDefaultLetter() {
+        loadLetter(0); // Automatically load the Welcome Letter (index 0)
+    }
+
+    const LETTER_PASSWORD = "chop"; // Replace this with your actual password
+    
+    function verifyPassword() {
+        const enteredPassword = prompt("Enter the password:");
+        return enteredPassword === LETTER_PASSWORD;
+    }
+    
+    function addNewLetter() {
+        if (verifyPassword()) {
+            const title = prompt("Enter the title for the new letter:");
+            if (title) {
+                letters.push({ title: title, content: "" });
+                localStorage.setItem("letters", JSON.stringify(letters));
+                renderPreviousLetters();
+                alert("New letter added!");
             }
-        ];
-        let currentLetterIndex = 0;
-
-        function playAudioLoop(audioSrc, volumeLevel) {
-            const audio = new Audio(audioSrc);
-            audio.loop = true; // Set the audio to loop forever
-            audio.volume = volumeLevel; // Set the volume (0.0 to 1.0)
-            audio.play().catch((error) => {
-                console.error("Failed to play audio:", error);
-            });
+        } else {
+            alert("Incorrect password. Action denied.");
         }
-        
-        
-        // Usage
-        playAudioLoop('santa.mp3', 0.3);
-
-        function playSoundEffect(soundName) {
-            const audio = new Audio(`${soundName}.mp3`);
-            audio.play();
-        }
-
-        function toggleLetter() {
-            const envelope = document.getElementById('current-envelope');
-            if (!envelope.classList.contains('open')) {
-                envelope.classList.add('open');
-                document.getElementById('back-button').classList.remove('hidden');
-                playSoundEffect('twinkle');
-            }
-        }
-
-        function goBack(event) {
-            event.stopPropagation();
-            const envelope = document.getElementById('current-envelope');
-            envelope.classList.add('descending');
-            setTimeout(() => {
-                envelope.classList.remove('open', 'descending');
-                document.getElementById('letter-content').value = '';
-                document.getElementById('letter-title').textContent = '';
-                document.getElementById('envelope-title').textContent = '';
-                document.getElementById('back-button').classList.add('hidden');
-                envelope.querySelector('button[onclick="saveLetter(event)"]').classList.add('hidden');
-                playSoundEffect('crumble');
-            }, 600);
-        }
-
-        function renderPreviousLetters() {
-            const container = document.getElementById('previous-letters');
-            container.innerHTML = '';
-            letters.forEach((letter, index) => {
-                const button = document.createElement('button');
-                button.textContent = letter.title || `Letter ${index + 1}`;
-                button.onclick = () => loadLetter(index);
-                container.appendChild(button);
-            });
-        }
-
-        function loadLetter(index) {
-            currentLetterIndex = index;
-            const letter = letters[index];
-            document.getElementById('letter-title').textContent = letter.title;
-            document.getElementById('letter-content').value = letter.content;
-            document.getElementById('envelope-title').textContent = letter.title;
-            toggleLetter();
-        }
-
-        const LETTER_PASSWORD = "chop"; // Replace this with your actual password
-        
-        function verifyPassword() {
-            const enteredPassword = prompt("Enter the password:");
-            return enteredPassword === LETTER_PASSWORD;
-        }
-        
-        function addNewLetter() {
-            if (verifyPassword()) {
-                const title = prompt("Enter the title for the new letter:");
-                if (title) {
-                    letters.push({ title: title, content: "" });
-                    localStorage.setItem("letters", JSON.stringify(letters));
-                    renderPreviousLetters();
-                    alert("New letter added!");
-                }
+    }
+    
+    function promptDeleteLetter() {
+        if (verifyPassword()) {
+            const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
+            if (index && index > 0 && index <= letters.length) {
+                letters.splice(index - 1, 1);
+                localStorage.setItem("letters", JSON.stringify(letters));
+                renderPreviousLetters();
+                alert("Letter deleted!");
             } else {
-                alert("Incorrect password. Action denied.");
+                alert("Invalid input.");
             }
+        } else {
+            alert("Incorrect password. Action denied.");
         }
-        
-        function promptDeleteLetter() {
-            if (verifyPassword()) {
-                const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
-                if (index && index > 0 && index <= letters.length) {
-                    letters.splice(index - 1, 1);
-                    localStorage.setItem("letters", JSON.stringify(letters));
-                    renderPreviousLetters();
-                    alert("Letter deleted!");
-                } else {
-                    alert("Invalid input.");
-                }
-            } else {
-                alert("Incorrect password. Action denied.");
+    }
+
+    function resetLetters() {
+        if (verifyPassword()) {
+            if (confirm("Are you sure you want to reset all letters? This action cannot be undone.")) {
+                localStorage.removeItem('letters');
+                letters = [
+                    { 
+                        title: "Welcome Letter", 
+                        content: `Hola mi amor,\n\nI couldn’t send you a Christmas card in time for our favorite holiday, so I made something even more special—this little website where I’m journaling everything I’ve done since the day you flew away from me.\n\nI made it just for you, so even though we’re oceans apart, it feels like we’re still sharing our days and moments together. I know we talk every day, but this feels so romantic—like we’re one of those 19th-century couples writing heartfelt letters from afar.\n\nIt took me a while to put this together, and I hope it brings a smile to your face, mi amorcito. I love you more than words can say, and I miss you so much. Wishing you and your family the most magical, joyful Christmas and a New Year filled with happiness. Counting down the days until I get to hold you again.\n\nTe amo con todo mi corazón. See you soon, my love. 💕`
+                    }
+                ];
+                localStorage.setItem('letters', JSON.stringify(letters));
+                location.reload();
             }
+        } else {
+            alert("Incorrect password. Action denied.");
         }
+    }
 
-        function resetLetters() {
-            if (verifyPassword()) {
-                if (confirm("Are you sure you want to reset all letters? This action cannot be undone.")) {
-                    localStorage.removeItem('letters');
-                    letters = [
-                        { 
-                            title: "Welcome Letter", 
-                            content: `Hola mi amor,\n\nI couldn’t send you a Christmas card in time for our favorite holiday, so I made something even more special—this little website where I’m journaling everything I’ve done since the day you flew away from me.\n\nI made it just for you, so even though we’re oceans apart, it feels like we’re still sharing our days and moments together. I know we talk every day, but this feels so romantic—like we’re one of those 19th-century couples writing heartfelt letters from afar.\n\nIt took me a while to put this together, and I hope it brings a smile to your face, mi amorcito. I love you more than words can say, and I miss you so much. Wishing you and your family the most magical, joyful Christmas and a New Year filled with happiness. Counting down the days until I get to hold you again.\n\nTe amo con todo mi corazón. See you soon, my love. 💕`
-                        }
-                    ];
-                    localStorage.setItem('letters', JSON.stringify(letters));
-                    location.reload();
-                }
-            } else {
-                alert("Incorrect password. Action denied.");
-            }
-        }
+    function saveLetter(event) {
+        event.stopPropagation();
+        const content = document.getElementById('letter-content').value;
+        letters[currentLetterIndex].content = content;
+        localStorage.setItem('letters', JSON.stringify(letters));
+        alert("Letter saved!");
+    }
 
-        function saveLetter(event) {
-            event.stopPropagation();
-            const content = document.getElementById('letter-content').value;
-            letters[currentLetterIndex].content = content;
-            localStorage.setItem('letters', JSON.stringify(letters));
-            alert("Letter saved!");
-        }
+    renderPreviousLetters();
+    initializeDefaultLetter(); // Call this function to initialize the Welcome Letter as default
+</script>
 
-        renderPreviousLetters();
-    </script>
 </body>
 </html>
