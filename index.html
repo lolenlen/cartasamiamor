@@ -258,11 +258,22 @@
                     localStorage.setItem("letters", JSON.stringify(letters));
                     renderPreviousLetters();
                     alert("New letter added!");
+        
+                    // Automatically load the new letter for editing
+                    loadLetter(letters.length - 1);
+                    const textarea = document.getElementById('letter-content');
+                    textarea.removeAttribute('readonly');
+                    textarea.focus();
+        
+                    // Show the "Save" button for the new letter
+                    const saveButton = document.querySelector('.letter button[onclick="saveLetter(event)"]');
+                    saveButton.classList.remove('hidden');
                 }
             } else {
                 alert("Incorrect password. Action denied.");
             }
         }
+
         
         function promptDeleteLetter() {
             if (verifyPassword()) {
