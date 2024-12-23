@@ -242,27 +242,44 @@
             toggleLetter();
         }
 
+        // Define the password
+        const LETTER_PASSWORD = "chop"; // Replace this with your actual password
+        
+        function verifyPassword() {
+            const enteredPassword = prompt("Enter the password:");
+            return enteredPassword === LETTER_PASSWORD;
+        }
+        
         function addNewLetter() {
-            const title = prompt("Enter the title for the new letter:");
-            if (title) {
-                letters.push({ title: title, content: "" });
-                localStorage.setItem("letters", JSON.stringify(letters));
-                renderPreviousLetters();
-                alert("New letter added!");
+            if (verifyPassword()) {
+                const title = prompt("Enter the title for the new letter:");
+                if (title) {
+                    letters.push({ title: title, content: "" });
+                    localStorage.setItem("letters", JSON.stringify(letters));
+                    renderPreviousLetters();
+                    alert("New letter added!");
+                }
+            } else {
+                alert("Incorrect password. Action denied.");
+            }
+        }
+        
+        function promptDeleteLetter() {
+            if (verifyPassword()) {
+                const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
+                if (index && index > 0 && index <= letters.length) {
+                    letters.splice(index - 1, 1);
+                    localStorage.setItem("letters", JSON.stringify(letters));
+                    renderPreviousLetters();
+                    alert("Letter deleted!");
+                } else {
+                    alert("Invalid input.");
+                }
+            } else {
+                alert("Incorrect password. Action denied.");
             }
         }
 
-        function promptDeleteLetter() {
-            const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
-            if (index && index > 0 && index <= letters.length) {
-                letters.splice(index - 1, 1);
-                localStorage.setItem("letters", JSON.stringify(letters));
-                renderPreviousLetters();
-                alert("Letter deleted!");
-            } else {
-                alert("Invalid input.");
-            }
-        }
 
         function saveLetter(event) {
             event.stopPropagation();
