@@ -194,6 +194,19 @@
         ];
         let currentLetterIndex = 0;
 
+        function playAudioLoop(audioSrc, volumeLevel) {
+            const audio = new Audio(audioSrc);
+            audio.loop = true; // Set the audio to loop forever
+            audio.volume = volumeLevel; // Set the volume (0.0 to 1.0)
+            audio.play().catch((error) => {
+                console.error("Failed to play audio:", error);
+            });
+        }
+        
+        
+        // Usage
+        playAudioLoop('santa.mp3', 0.3);
+
         function playSoundEffect(soundName) {
             const audio = new Audio(`${soundName}.mp3`);
             audio.play();
