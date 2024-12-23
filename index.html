@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartas a mi amor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Playfair Display', serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background-color: rgb(255, 255, 255);
+            border: 2px solid #50484838;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .top-bar button {
+            background-color: white;
+            color: #ec9090;
+            border: 2px solid #887f7f38;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .top-bar button:hover {
+            background-color: #e1e9f4;
+        }
+
+        .envelope {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            height: 200px;
+            background: url('envelope.png') no-repeat center center;
+            background-size: cover;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .envelope.open {
+            width: 70%;
+            height: 100%;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0);
+        }
+
+        .letter {
+            display: none;
+            width: 70vh;
+            height: 90vh;
+            box-sizing: border-box;
+            background: url('letter.jpg') no-repeat center center;
+            background-size: cover;
+            overflow-y: auto;
+        }
+
+        .envelope.open .letter {
+            display: block;
+        }
+
+        .letter textarea {
+            width: 100%;
+            height: calc(100% - 50px);
+            border: 1px none #d6d6d600;
+            border-radius: 5px;
+            padding: 80px 85px 100px 85px;
+            font-size: 14px;
+            resize: none;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0);
+            overflow-y: auto;
+        }
+
+        .letter textarea[readonly] {
+            background-color: rgba(249, 249, 249, 0);
+            color: #666;
+            cursor: default;
+        }
+
+        .letter button {
+            background-color: rgb(208, 191, 156);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .letter button:hover {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .descending {
+            animation: descend 0.6s ease-out;
+        }
+
+        .ascending {
+            animation: ascend 0.6s ease-in;
+        }
+
+        @keyframes descend {
+            from {
+                transform: translateY(-50%);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes ascend {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(-50%);
+                opacity: 1;
+            }
+        }
+
+        .title-display {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            padding-top: 15vh;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div id="previous-letters">
+            <!-- Buttons for previous letters will be dynamically added here -->
+        </div>
+        <button onclick="addNewLetter()">New Letter</button>
+        <button onclick="promptDeleteLetter()">Delete Letter</button>
+    </div>
+
+    <div class="envelope" id="current-envelope" onclick="toggleLetter()">
+        <div class="letter">
+            <div class="title-display" id="letter-title">Welcome Letter</div>
+            <textarea id="letter-content" readonly></textarea>
+            <button class="hidden" onclick="saveLetter(event)">Save</button>
+            <button id="back-button" onclick="goBack(event)">Back</button>
+        </div>
+    </div>
+    <div class="envelope-title" id="envelope-title">Welcome Letter</div>
+
+    <audio id="open-sound" src="open.mp3"></audio>
+    <audio id="close-sound" src="close.mp3"></audio>
+
+    <script>
+        let letters = JSON.parse(localStorage.getItem('letters')) || [
+            { 
+                title: "Welcome Letter", 
+                content: `Hola mi amor,\n\nI couldn’t send you a Christmas card in time for our favorite holiday, so I made something even more special—this little website where I’m journaling everything I’ve done since the day you flew away from me.\n\nI made it just for you, so even though we’re oceans apart, it feels like we’re still sharing our days and moments together. I know we talk every day, but this feels so romantic—like we’re one of those 19th-century couples writing heartfelt letters from afar.\n\nIt took me a while to put this together, and I hope it brings a smile to your face, mi amorcito. I love you more than words can say, and I miss you so much. Wishing you and your family the most magical, joyful Christmas and a New Year filled with happiness. Counting down the days until I get to hold you again.\n\nTe amo con todo mi corazón. See you soon, my love. 💕`
+            }
+        ];
+        let currentLetterIndex = 0;
+
+        function playSoundEffect(soundName) {
+            const audio = new Audio(`${soundName}.mp3`);
+            audio.play();
+        }
+
+        function toggleLetter() {
+            const envelope = document.getElementById('current-envelope');
+            if (!envelope.classList.contains('open')) {
+                envelope.classList.add('open');
+                document.getElementById('back-button').classList.remove('hidden');
+                playSoundEffect('twinkle');
+            }
+        }
+
+        function goBack(event) {
+            event.stopPropagation();
+            const envelope = document.getElementById('current-envelope');
+            envelope.classList.add('descending');
+            setTimeout(() => {
+                envelope.classList.remove('open', 'descending');
+                document.getElementById('letter-content').value = '';
+                document.getElementById('letter-title').textContent = '';
+                document.getElementById('envelope-title').textContent = '';
+                document.getElementById('back-button').classList.add('hidden');
+                envelope.querySelector('button[onclick="saveLetter(event)"]').classList.add('hidden');
+                playSoundEffect('crumble');
+            }, 600);
+        }
+
+        function renderPreviousLetters() {
+            const container = document.getElementById('previous-letters');
+            container.innerHTML = '';
+            letters.forEach((letter, index) => {
+                const button = document.createElement('button');
+                button.textContent = letter.title || `Letter ${index + 1}`;
+                button.onclick = () => loadLetter(index);
+                container.appendChild(button);
+            });
+        }
+
+        function loadLetter(index) {
+            currentLetterIndex = index;
+            const letter = letters[index];
+            document.getElementById('letter-title').textContent = letter.title;
+            document.getElementById('letter-content').value = letter.content;
+            document.getElementById('envelope-title').textContent = letter.title;
+            toggleLetter();
+        }
+
+        // Define the password
+        const LETTER_PASSWORD = "chop"; // Replace this with your actual password
+        
+        function verifyPassword() {
+            const enteredPassword = prompt("Enter the password:");
+            return enteredPassword === LETTER_PASSWORD;
+        }
+        
+        function addNewLetter() {
+            if (verifyPassword()) {
+                const title = prompt("Enter the title for the new letter:");
+                if (title) {
+                    letters.push({ title: title, content: "" });
+                    localStorage.setItem("letters", JSON.stringify(letters));
+                    renderPreviousLetters();
+                    alert("New letter added!");
+                }
+            } else {
+                alert("Incorrect password. Action denied.");
+            }
+        }
+        
+        function promptDeleteLetter() {
+            if (verifyPassword()) {
+                const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
+                if (index && index > 0 && index <= letters.length) {
+                    letters.splice(index - 1, 1);
+                    localStorage.setItem("letters", JSON.stringify(letters));
+                    renderPreviousLetters();
+                    alert("Letter deleted!");
+                } else {
+                    alert("Invalid input.");
+                }
+            } else {
+                alert("Incorrect password. Action denied.");
+            }
+        }
+
+
+        function saveLetter(event) {
+            event.stopPropagation();
+            const content = document.getElementById('letter-content').value;
+            letters[currentLetterIndex].content = content;
+            localStorage.setItem('letters', JSON.stringify(letters));
+            alert("Letter saved!");
+        }
+
+        renderPreviousLetters();
+    </script>
+</body>
+</html>
