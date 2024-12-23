@@ -230,6 +230,45 @@
             });
         }
 
+        function loadLetter(index) {
+            currentLetterIndex = index;
+            const letter = letters[index];
+            document.getElementById('letter-title').textContent = letter.title;
+            document.getElementById('letter-content').value = letter.content;
+            document.getElementById('envelope-title').textContent = letter.title;
+            toggleLetter();
+        }
+
+        function addNewLetter() {
+            const title = prompt("Enter the title for the new letter:");
+            if (title) {
+                letters.push({ title: title, content: "" });
+                localStorage.setItem("letters", JSON.stringify(letters));
+                renderPreviousLetters();
+                alert("New letter added!");
+            }
+        }
+
+        function promptDeleteLetter() {
+            const index = parseInt(prompt("Enter the number of the letter to delete (starting from 1):"));
+            if (index && index > 0 && index <= letters.length) {
+                letters.splice(index - 1, 1);
+                localStorage.setItem("letters", JSON.stringify(letters));
+                renderPreviousLetters();
+                alert("Letter deleted!");
+            } else {
+                alert("Invalid input.");
+            }
+        }
+
+        function saveLetter(event) {
+            event.stopPropagation();
+            const content = document.getElementById('letter-content').value;
+            letters[currentLetterIndex].content = content;
+            localStorage.setItem('letters', JSON.stringify(letters));
+            alert("Letter saved!");
+        }
+
         renderPreviousLetters();
     </script>
 </body>
